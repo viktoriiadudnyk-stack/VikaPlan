@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef, forwardRef } from "react";
 
 const VIEWS = { TODAY:"today", UPCOMING:"upcoming", INBOX:"inbox", PROJECTS:"projects", CALENDAR:"calendar", STATS:"stats" };
 const P = { HIGH:"high", MED:"med", LOW:"low", NONE:"none" };
-const P_LABEL = { high:"Терміново", med:"Середній", low:"Низький", none:"Без пріоритету" };
+const P_LABEL = { high:"High", med:"Medium", low:"Low", none:"No priority" };
 const REPEAT_OPT = { none:"Без повтору", daily:"Щодня", weekly:"Щотижня", monthly:"Щомісяця" };
 const PROJ_COLORS = ["#5B21B6","#B91C1C","#1D4ED8","#15803D","#B45309","#BE185D","#0E7490","#4D7C0F"];
 
@@ -190,20 +190,8 @@ export default function App() {
     </div>
   );
 
-  const FocusCard = () => (
-    <div className="focus-card">
-      <div className="focus-glow" />
-      <div className="focus-icon"><i className="ti ti-bolt" /></div>
-      <div className="focus-body">
-        <div className="focus-label">Фокус дня</div>
-        {focusTask
-          ?<div className="focus-text">{focusTask.text}</div>
-          :<div className="focus-empty">Натисни ⚡ на будь-якій задачі</div>
-        }
-      </div>
-      {focusTask&&<button className="focus-btn" onClick={()=>toggleFocus(focusTask.id)}>Зняти</button>}
-    </div>
-  );
+  const [focusPicker, setFocusPicker] = useState(false);
+  const availForFocus = st.tasks.filter(t => !t.done);
 
   return (
     <div className="app">
@@ -278,7 +266,38 @@ export default function App() {
         </div>
 
         <div className="content">
-          {view!==VIEWS.STATS&&view!==VIEWS.CALENDAR&&<FocusCard/>}
+          {view!==VIEWS.STATS&&view!==VIEWS.CALENDAR&&(
+            <div className="focus-card">
+              <div className="focus-glow"/>
+              <div className="focus-icon"><i className="ti ti-bolt"/></div>
+              <div className="focus-body">
+                <div className="focus-label">Фокус дня</div>
+                {focusTask
+                  ?<div className="focus-text">{focusTask.text}</div>
+                  :<div className="focus-empty">Обери задачу нижче або натисни ⚡</div>
+                }
+              </div>
+              <div style={{display:"flex",gap:6,flexShrink:0}}>
+                {focusTask&&<button className="focus-btn" onClick={()=>toggleFocus(focusTask.id)}>Зняти</button>}
+                <button className="focus-btn set" onClick={()=>setFocusPicker(v=>!v)}>
+                  {focusPicker?"Закрити":"Обрати"}
+                </button>
+              </div>
+            </div>
+          )}
+          {focusPicker&&view!==VIEWS.STATS&&view!==VIEWS.CALENDAR&&(
+            <div style={{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:"var(--r-lg)",padding:"8px",marginBottom:16,boxShadow:"var(--shadow-sm)"}}>
+              {availForFocus.length===0&&<div style={{padding:"10px 8px",fontSize:13,color:"var(--ink4)"}}>Немає активних задач</div>}
+              {availForFocus.map(t=>(
+                <button key={t.id} onClick={()=>{toggleFocus(t.id);setFocusPicker(false);}}
+                  style={{display:"flex",alignItems:"center",gap:10,width:"100%",padding:"8px 10px",borderRadius:8,background:st.focusId===t.id?"var(--focus-bg)":"none",border:"none",cursor:"pointer",textAlign:"left"}}>
+                  <i className={`ti ${st.focusId===t.id?"ti-bolt-off":"ti-bolt"}`} style={{fontSize:14,color:st.focusId===t.id?"var(--focus-color)":"var(--ink4)",flexShrink:0}}/>
+                  <span style={{fontSize:13,fontWeight:500,color:"var(--ink)",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{t.text||"Без назви"}</span>
+                  {t.priority!==P.NONE&&<span style={{fontSize:11,fontWeight:600,color:t.priority==="high"?"var(--high)":t.priority==="med"?"var(--med)":"var(--low)"}}>{P_LABEL[t.priority]}</span>}
+                </button>
+              ))}
+            </div>
+          )}
 
           {view===VIEWS.TODAY&&<><FilterBar/><TaskListView tasks={todayTasks} renderTask={renderTask} renderAdd={()=>renderAdd({date:todayStr()})} emptyMsg="Сьогодні все виконано 🎉"/></>}
           {view===VIEWS.UPCOMING&&<><FilterBar/><UpcomingView tasks={upcomingTasks} renderTask={renderTask} renderAdd={()=>renderAdd({})}/></>}
