@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, forwardRef, useEffect } from "react";
 
-const VIEWS = { TODAY:"today", UPCOMING:"upcoming", INBOX:"inbox", PRIVATE:"private", PROJECTS:"projects", CALENDAR:"calendar", STATS:"stats" };
+const VIEWS = { TODAY:"today", UPCOMING:"upcoming", INBOX:"inbox", PRIVATE:"private", PROJECTS:"projects", CALENDAR:"calendar", STATS:"stats", MEETINGS:"meetings" };
 const P = { HIGH:"high", MED:"med", LOW:"low", NONE:"none" };
 const P_LABEL = { high:"High", med:"Medium", low:"Low", none:"No priority" };
 const REPEAT_OPT = { none:"No repeat", daily:"Daily", weekly:"Weekly", monthly:"Monthly" };
@@ -22,7 +22,7 @@ const fmtDate = d => { if(!d)return""; const dt=new Date(d+"T00:00:00"); return 
 const isToday = d => d===todayStr();
 const isPast = d => d&&d<todayStr();
 const isFuture = d => d&&d>todayStr();
-const load = () => { try{ const s=localStorage.getItem("vikaplan_v5"); return s?JSON.parse(s):{tasks:[],projects:[],focus:{text:"",done:false}}; }catch{return{tasks:[],projects:[],focus:{text:"",done:false}};} };
+const load = () => { try{ const s=localStorage.getItem("vikaplan_v5"); return s?JSON.parse(s):{tasks:[],projects:[],focus:{text:"",done:false},meetings:[]}; }catch{return{tasks:[],projects:[],focus:{text:"",done:false},meetings:[]};} };
 const persist = s => { try{localStorage.setItem("vikaplan_v5",JSON.stringify(s));}catch{} };
 const quote = QUOTES[new Date().getDay()%QUOTES.length];
 
@@ -177,7 +177,7 @@ export default function App() {
     </div>
   );
 
-  const pageTitle = view===VIEWS.TODAY?"Today":view===VIEWS.UPCOMING?"Upcoming":view===VIEWS.INBOX?"Inbox":view===VIEWS.PRIVATE?"Private":view===VIEWS.CALENDAR?"Calendar":view===VIEWS.STATS?"Progress":selProj?st.projects.find(p=>p.id===selProj)?.name||"Project":"Projects";
+  const pageTitle = view===VIEWS.TODAY?"Today":view===VIEWS.UPCOMING?"Upcoming":view===VIEWS.INBOX?"Inbox":view===VIEWS.PRIVATE?"Private":view===VIEWS.CALENDAR?"Calendar":view===VIEWS.STATS?"Progress":view===VIEWS.MEETINGS?"1:1 Meetings":selProj?st.projects.find(p=>p.id===selProj)?.name||"Project":"Projects";
 
   return (
     <div className="app">
@@ -215,6 +215,7 @@ export default function App() {
           <div className="nav-sep"/>
           <button className={`nav-btn${view===VIEWS.CALENDAR&&!selProj?" active":""}`} onClick={()=>nav(VIEWS.CALENDAR)}><i className="ti ti-calendar-month" aria-hidden/><span className="nav-btn-label">Calendar</span></button>
           <button className={`nav-btn${view===VIEWS.STATS&&!selProj?" active":""}`} onClick={()=>nav(VIEWS.STATS)}><i className="ti ti-chart-bar" aria-hidden/><span className="nav-btn-label">Progress</span></button>
+          <button className={`nav-btn${view===VIEWS.MEETINGS&&!selProj?" active":""}`} onClick={()=>nav(VIEWS.MEETINGS)}><i className="ti ti-users" aria-hidden/><span className="nav-btn-label">1:1 Meetings</span>{(st.meetings||[]).length>0&&<span className="nav-badge">{(st.meetings||[]).length}</span>}</button>
 
           <div className="nav-sep" style={{marginTop:4}}/>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 10px 4px"}}>
@@ -397,6 +398,7 @@ export default function App() {
             </button>
           </div>}
 
+          {view===VIEWS.MEETINGS&&<MeetingsView meetings={st.meetings||[]} onAdd={m=>{const nm={...m,id:gid(),createdAt:Date.now()};upd({...st,meetings:[nm,...(st.meetings||[])]});}} onDelete={id=>upd({...st,meetings:(st.meetings||[]).filter(m=>m.id!==id)})} onUpdate={(id,fields)=>upd({...st,meetings:(st.meetings||[]).map(m=>m.id===id?{...m,...fields}:m)})}/>}
           {view===VIEWS.CALENDAR&&<CalView tasks={st.tasks} calDate={calDate} setCalDate={setCalDate} calDays={calDays} selDay={selDay} setSelDay={setSelDay} renderTask={renderTask} renderAdd={renderAdd}/>}
           {view===VIEWS.STATS&&<StatsView tasks={st.tasks} projects={st.projects} total={total} done={doneCount} overdue={overdue} todayCount={todayActive} pct={pct}/>}
         </div>
@@ -672,4 +674,158 @@ function TaskDetailModal({task,projects,onUpdate,onClose,onDelete}){
       </div>
     </div>
   </div>;
+}
+
+// ── MeetingsView ─────────────────────────────────────────────────────────────
+function MeetingsView({ meetings, onAdd, onDelete, onUpdate }) {
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ person: "", date: "", discussed: "", nextSteps: "" });
+  const [expandedId, setExpandedId] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({});
+
+  const submit = () => {
+    if (!form.person.trim()) return;
+    onAdd({ person: form.person.trim(), date: form.date || new Date().toISOString().split("T")[0], discussed: form.discussed.trim(), nextSteps: form.nextSteps.trim() });
+    setForm({ person: "", date: "", discussed: "", nextSteps: "" });
+    setShowForm(false);
+  };
+
+  const startEdit = (m) => { setEditingId(m.id); setEditForm({ person: m.person, date: m.date, discussed: m.discussed, nextSteps: m.nextSteps }); setExpandedId(m.id); };
+  const saveEdit = (id) => { onUpdate(id, editForm); setEditingId(null); };
+
+  const fmtDate = d => { if (!d) return ""; const dt = new Date(d + "T00:00:00"); return dt.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" }); };
+
+  return (
+    <div>
+      <button onClick={() => setShowForm(v => !v)}
+        style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", borderRadius: "var(--r-lg)", background: showForm ? "var(--surface2)" : "linear-gradient(135deg, var(--purple), var(--purple2))", border: "none", color: showForm ? "var(--ink3)" : "#fff", fontSize: 13, fontWeight: 700, marginBottom: 20, boxShadow: showForm ? "none" : "0 2px 8px rgba(108,71,255,0.3)", cursor: "pointer" }}>
+        <i className={`ti ${showForm ? "ti-x" : "ti-plus"}`} style={{ fontSize: 15 }} />
+        {showForm ? "Cancel" : "Add meeting"}
+      </button>
+
+      {showForm && (
+        <div style={{ background: "var(--surface)", border: "2px solid var(--purple)", borderRadius: "var(--r-xl)", padding: 20, marginBottom: 20, boxShadow: "0 0 0 4px rgba(108,71,255,0.06)" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", display: "block", marginBottom: 6 }}>With whom *</label>
+              <input value={form.person} onChange={e => setForm(f => ({ ...f, person: e.target.value }))} placeholder="Name or team..."
+                style={{ width: "100%", fontSize: 14, fontWeight: 500, padding: "8px 12px", border: "1.5px solid var(--border)", borderRadius: "var(--r)", outline: "none", color: "var(--ink)", background: "var(--surface2)" }}
+                onKeyDown={e => { if (e.key === "Enter") submit(); }} />
+            </div>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", display: "block", marginBottom: 6 }}>Date</label>
+              <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+                style={{ width: "100%", fontSize: 14, fontWeight: 500, padding: "8px 12px", border: "1.5px solid var(--border)", borderRadius: "var(--r)", outline: "none", color: "var(--ink)", background: "var(--surface2)" }} />
+            </div>
+          </div>
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", display: "block", marginBottom: 6 }}>What was discussed</label>
+            <textarea value={form.discussed} onChange={e => setForm(f => ({ ...f, discussed: e.target.value }))} placeholder="Topics, decisions, context..."
+              style={{ width: "100%", fontSize: 13, padding: "10px 12px", border: "1.5px solid var(--border)", borderRadius: "var(--r)", outline: "none", color: "var(--ink2)", background: "var(--surface2)", resize: "vertical", minHeight: 80, lineHeight: 1.6 }} />
+          </div>
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", display: "block", marginBottom: 6 }}>Next steps</label>
+            <textarea value={form.nextSteps} onChange={e => setForm(f => ({ ...f, nextSteps: e.target.value }))} placeholder="Action items, follow-ups..."
+              style={{ width: "100%", fontSize: 13, padding: "10px 12px", border: "1.5px solid var(--border)", borderRadius: "var(--r)", outline: "none", color: "var(--ink2)", background: "var(--surface2)", resize: "vertical", minHeight: 70, lineHeight: 1.6 }} />
+          </div>
+          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+            <button className="btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
+            <button className="btn-primary" onClick={submit} disabled={!form.person.trim()}>Save meeting</button>
+          </div>
+        </div>
+      )}
+
+      {meetings.length === 0 && !showForm && (
+        <div className="empty">
+          <div className="empty-icon"><i className="ti ti-users" /></div>
+          <p>No meetings yet — add your first 1:1</p>
+        </div>
+      )}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {meetings.map(m => (
+          <div key={m.id} style={{ background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: "var(--r-xl)", overflow: "hidden", boxShadow: "var(--s0)", transition: "box-shadow 0.15s" }}
+            onMouseEnter={e => e.currentTarget.style.boxShadow = "var(--s1)"}
+            onMouseLeave={e => e.currentTarget.style.boxShadow = "var(--s0)"}>
+
+            {/* Header */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", cursor: "pointer" }} onClick={() => setExpandedId(expandedId === m.id ? null : m.id)}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--purple-bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <i className="ti ti-user" style={{ fontSize: 17, color: "var(--purple)" }} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", marginBottom: 2 }}>{m.person}</div>
+                <div style={{ fontSize: 12, color: "var(--ink4)", fontWeight: 500 }}>{fmtDate(m.date)}</div>
+              </div>
+              {m.nextSteps && (
+                <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: "var(--teal-bg)", color: "var(--teal)", flexShrink: 0 }}>Has next steps</span>
+              )}
+              <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                <button onClick={e => { e.stopPropagation(); startEdit(m); }} style={{ width: 28, height: 28, borderRadius: 7, background: "var(--surface2)", border: "1px solid var(--border)", color: "var(--ink3)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                  <i className="ti ti-pencil" style={{ fontSize: 13 }} />
+                </button>
+                <button onClick={e => { e.stopPropagation(); onDelete(m.id); }} style={{ width: 28, height: 28, borderRadius: 7, background: "var(--red-bg)", border: "1px solid var(--red)", color: "var(--red)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                  <i className="ti ti-trash" style={{ fontSize: 13 }} />
+                </button>
+              </div>
+              <i className={`ti ${expandedId === m.id ? "ti-chevron-up" : "ti-chevron-down"}`} style={{ fontSize: 14, color: "var(--ink4)", flexShrink: 0 }} />
+            </div>
+
+            {/* Expanded content */}
+            {expandedId === m.id && (
+              <div style={{ borderTop: "1px solid var(--border)", padding: "16px 18px" }}>
+                {editingId === m.id ? (
+                  <div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+                      <div>
+                        <label style={{ fontSize: 10, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", display: "block", marginBottom: 4 }}>With whom</label>
+                        <input value={editForm.person} onChange={e => setEditForm(f => ({ ...f, person: e.target.value }))}
+                          style={{ width: "100%", fontSize: 13, padding: "7px 10px", border: "1.5px solid var(--purple)", borderRadius: 8, outline: "none", color: "var(--ink)", background: "var(--surface2)" }} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 10, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", display: "block", marginBottom: 4 }}>Date</label>
+                        <input type="date" value={editForm.date} onChange={e => setEditForm(f => ({ ...f, date: e.target.value }))}
+                          style={{ width: "100%", fontSize: 13, padding: "7px 10px", border: "1.5px solid var(--border)", borderRadius: 8, outline: "none", color: "var(--ink)", background: "var(--surface2)" }} />
+                      </div>
+                    </div>
+                    <div style={{ marginBottom: 10 }}>
+                      <label style={{ fontSize: 10, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", display: "block", marginBottom: 4 }}>What was discussed</label>
+                      <textarea value={editForm.discussed} onChange={e => setEditForm(f => ({ ...f, discussed: e.target.value }))}
+                        style={{ width: "100%", fontSize: 13, padding: "8px 10px", border: "1.5px solid var(--border)", borderRadius: 8, outline: "none", color: "var(--ink2)", background: "var(--surface2)", resize: "vertical", minHeight: 70, lineHeight: 1.6 }} />
+                    </div>
+                    <div style={{ marginBottom: 12 }}>
+                      <label style={{ fontSize: 10, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", display: "block", marginBottom: 4 }}>Next steps</label>
+                      <textarea value={editForm.nextSteps} onChange={e => setEditForm(f => ({ ...f, nextSteps: e.target.value }))}
+                        style={{ width: "100%", fontSize: 13, padding: "8px 10px", border: "1.5px solid var(--border)", borderRadius: 8, outline: "none", color: "var(--ink2)", background: "var(--surface2)", resize: "vertical", minHeight: 60, lineHeight: 1.6 }} />
+                    </div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button className="btn-primary" style={{ fontSize: 12, padding: "6px 16px" }} onClick={() => saveEdit(m.id)}>Save</button>
+                      <button className="btn-secondary" style={{ fontSize: 12, padding: "6px 12px" }} onClick={() => setEditingId(null)}>Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                    {m.discussed && (
+                      <div>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", marginBottom: 8 }}>💬 Discussed</div>
+                        <div style={{ fontSize: 13, color: "var(--ink2)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{m.discussed}</div>
+                      </div>
+                    )}
+                    {m.nextSteps && (
+                      <div>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: "var(--teal)", textTransform: "uppercase", letterSpacing: "0.7px", marginBottom: 8 }}>✅ Next steps</div>
+                        <div style={{ fontSize: 13, color: "var(--ink2)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{m.nextSteps}</div>
+                      </div>
+                    )}
+                    {!m.discussed && !m.nextSteps && <div style={{ fontSize: 13, color: "var(--ink4)", fontStyle: "italic" }}>No notes added</div>}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
