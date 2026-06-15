@@ -257,8 +257,14 @@ export default function App() {
           </div>
           <div style={{display:"flex",gap:8,paddingTop:6}}>
             {view===VIEWS.PROJECTS&&selProj&&<>
-              <button className="icon-btn" onClick={()=>setEditingProj(selProj)} title="Rename"><i className="ti ti-edit" style={{fontSize:14}}/></button>
-              <button className="icon-btn" style={{color:"var(--red)",borderColor:"var(--red)"}} onClick={()=>setConfirmDel({type:"project",id:selProj})}><i className="ti ti-trash" style={{fontSize:14}}/></button>
+              <button onClick={()=>setEditingProj(selProj)}
+                style={{display:"flex",alignItems:"center",justifyContent:"center",width:34,height:34,borderRadius:9,background:"var(--surface2)",border:"1.5px solid var(--border)",color:"var(--ink2)",cursor:"pointer"}}>
+                <i className="ti ti-pencil" style={{fontSize:16}}/>
+              </button>
+              <button onClick={()=>setConfirmDel({type:"project",id:selProj})}
+                style={{display:"flex",alignItems:"center",justifyContent:"center",width:34,height:34,borderRadius:9,background:"var(--red-bg)",border:"1.5px solid var(--red)",color:"var(--red)",cursor:"pointer"}}>
+                <i className="ti ti-trash" style={{fontSize:16}}/>
+              </button>
             </>}
           </div>
         </div>
@@ -338,6 +344,23 @@ export default function App() {
             if(!proj)return null;
             const pt=filterFn(st.tasks.filter(t=>t.projectId===selProj));
             return<>
+              {/* Rename field */}
+              <div style={{marginBottom:18}}>
+                {editingProj===selProj
+                  ? <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                      <input autoFocus defaultValue={proj.name}
+                        style={{fontSize:16,fontWeight:700,padding:"8px 12px",border:"2px solid var(--purple)",borderRadius:"var(--r)",outline:"none",color:"var(--ink)",background:"var(--surface)",flex:1}}
+                        onBlur={e=>{updProj(selProj,{name:e.target.value});setEditingProj(null);}}
+                        onKeyDown={e=>{if(e.key==="Enter")e.target.blur();if(e.key==="Escape")setEditingProj(null);}}/>
+                      <button className="btn-secondary" onClick={()=>setEditingProj(null)}>Cancel</button>
+                    </div>
+                  : <button onClick={()=>setEditingProj(selProj)}
+                      style={{display:"flex",alignItems:"center",gap:8,padding:"7px 14px",border:"1.5px solid var(--border)",borderRadius:"var(--r)",background:"var(--surface)",color:"var(--ink3)",fontSize:13,fontWeight:600}}>
+                      <i className="ti ti-pencil" style={{fontSize:14}}/> Rename project
+                    </button>
+                }
+              </div>
+              {/* Color picker */}
               <div style={{display:"flex",gap:8,marginBottom:18,flexWrap:"wrap"}}>
                 {PROJ_COLORS.map(c=><button key={c} onClick={()=>updProj(selProj,{color:c})} style={{width:22,height:22,borderRadius:"50%",background:c,border:proj.color===c?"3px solid var(--ink)":"none",padding:0,boxShadow:proj.color===c?"0 0 0 2px #fff, 0 0 0 4px "+c:"none"}}/>)}
               </div>
