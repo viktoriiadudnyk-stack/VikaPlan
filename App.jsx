@@ -72,7 +72,7 @@ export default function App() {
     } else updTask(id,{done:!t.done});
   };
 
-  const addProj = () => { const p={id:gid(),name:"New project",color:PROJ_COLORS[st.projects.length%PROJ_COLORS.length]}; upd({...st,projects:[...st.projects,p]}); setSelProj(p.id); setView(VIEWS.PROJECTS); setEditingProj(p.id); setSidebarOpen(false); };
+  const addProj = () => { const p={id:gid(),name:"",color:PROJ_COLORS[st.projects.length%PROJ_COLORS.length]}; upd({...st,projects:[...st.projects,p]}); setSelProj(p.id); setView(VIEWS.PROJECTS); setEditingProj(p.id); setSidebarOpen(false); };
   const updProj = (id,fields) => upd({...st,projects:st.projects.map(p=>p.id===id?{...p,...fields}:p)});
   const delProj = id => { upd({...st,projects:st.projects.filter(p=>p.id!==id),tasks:st.tasks.map(t=>t.projectId===id?{...t,projectId:null}:t)}); setConfirmDel(null); if(selProj===id){setSelProj(null);setView(VIEWS.PROJECTS);} showToast("Project deleted"); };
 
@@ -346,16 +346,17 @@ export default function App() {
             return<>
               {/* Rename field */}
               <div style={{marginBottom:18}}>
-                {editingProj===selProj
+                {(editingProj===selProj||!proj.name)
                   ? <div style={{display:"flex",gap:8,alignItems:"center"}}>
                       <input autoFocus defaultValue={proj.name}
+                        placeholder="Project name..."
                         style={{fontSize:16,fontWeight:700,padding:"8px 12px",border:"2px solid var(--purple)",borderRadius:"var(--r)",outline:"none",color:"var(--ink)",background:"var(--surface)",flex:1}}
-                        onBlur={e=>{updProj(selProj,{name:e.target.value});setEditingProj(null);}}
-                        onKeyDown={e=>{if(e.key==="Enter")e.target.blur();if(e.key==="Escape")setEditingProj(null);}}/>
-                      <button className="btn-secondary" onClick={()=>setEditingProj(null)}>Cancel</button>
+                        onBlur={e=>{const v=e.target.value.trim()||"New project"; updProj(selProj,{name:v});setEditingProj(null);}}
+                        onKeyDown={e=>{if(e.key==="Enter")e.target.blur();if(e.key==="Escape"){updProj(selProj,{name:proj.name||"New project"});setEditingProj(null);}}}/>
+                      <button className="btn-secondary" onClick={()=>{updProj(selProj,{name:proj.name||"New project"});setEditingProj(null);}}>Save</button>
                     </div>
                   : <button onClick={()=>setEditingProj(selProj)}
-                      style={{display:"flex",alignItems:"center",gap:8,padding:"7px 14px",border:"1.5px solid var(--border)",borderRadius:"var(--r)",background:"var(--surface)",color:"var(--ink3)",fontSize:13,fontWeight:600}}>
+                      style={{display:"flex",alignItems:"center",gap:8,padding:"7px 14px",border:"1.5px solid var(--purple)",borderRadius:"var(--r)",background:"var(--purple-bg)",color:"var(--purple)",fontSize:13,fontWeight:700}}>
                       <i className="ti ti-pencil" style={{fontSize:14}}/> Rename project
                     </button>
                 }
