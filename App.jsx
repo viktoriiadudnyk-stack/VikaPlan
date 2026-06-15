@@ -242,7 +242,16 @@ export default function App() {
       <div className="main">
         <div className="topbar">
           <div>
-            <h1 className="page-title">{pageTitle}</h1>
+            {view===VIEWS.PROJECTS&&selProj
+              ? editingProj===selProj
+                ? <input autoFocus defaultValue={st.projects.find(p=>p.id===selProj)?.name||""} className="page-title"
+                    style={{background:"transparent",border:"none",borderBottom:"2px solid var(--purple)",outline:"none",fontSize:24,fontWeight:800,letterSpacing:"-0.7px",color:"var(--ink)",padding:"0 0 2px",minWidth:200}}
+                    onBlur={e=>{updProj(selProj,{name:e.target.value});setEditingProj(null);}}
+                    onKeyDown={e=>{if(e.key==="Enter"||e.key==="Escape")e.target.blur();}}/>
+                : <h1 className="page-title" onClick={()=>setEditingProj(selProj)} style={{cursor:"text"}}
+                    title="Click to rename">{pageTitle} <i className="ti ti-pencil" style={{fontSize:15,color:"var(--ink4)",verticalAlign:"middle",marginLeft:4}}/></h1>
+              : <h1 className="page-title">{pageTitle}</h1>
+            }
             {view===VIEWS.TODAY&&<p className="page-sub">{new Date().toLocaleDateString("en-US",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</p>}
             {view===VIEWS.PRIVATE&&<p className="page-sub">Stored only on this device</p>}
           </div>
