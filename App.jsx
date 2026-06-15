@@ -4,7 +4,7 @@ const VIEWS = { TODAY:"today", UPCOMING:"upcoming", INBOX:"inbox", PRIVATE:"priv
 const P = { HIGH:"high", MED:"med", LOW:"low", NONE:"none" };
 const P_LABEL = { high:"High", med:"Medium", low:"Low", none:"No priority" };
 const REPEAT_OPT = { none:"No repeat", daily:"Daily", weekly:"Weekly", monthly:"Monthly" };
-const PROJ_COLORS = ["#6C47FF","#E53E3E","#2563EB","#0FA884","#D97706","#BE185D","#0E7490","#65A30D"];
+const PROJ_COLORS = ["#0D9488","#E53E3E","#2563EB","#0FA884","#D97706","#BE185D","#0E7490","#65A30D"];
 
 const QUOTES = [
   { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
@@ -246,7 +246,7 @@ export default function App() {
             {view===VIEWS.PROJECTS&&selProj
               ? editingProj===selProj
                 ? <input autoFocus defaultValue={st.projects.find(p=>p.id===selProj)?.name||""} className="page-title"
-                    style={{background:"transparent",border:"none",borderBottom:"2px solid var(--purple)",outline:"none",fontSize:24,fontWeight:800,letterSpacing:"-0.7px",color:"var(--ink)",padding:"0 0 2px",minWidth:200}}
+                    style={{background:"transparent",border:"none",borderBottom:"2px solid var(--teal-accent)",outline:"none",fontSize:24,fontWeight:800,letterSpacing:"-0.7px",color:"var(--ink)",padding:"0 0 2px",minWidth:200}}
                     onBlur={e=>{updProj(selProj,{name:e.target.value});setEditingProj(null);}}
                     onKeyDown={e=>{if(e.key==="Enter"||e.key==="Escape")e.target.blur();}}/>
                 : <h1 className="page-title" onClick={()=>setEditingProj(selProj)} style={{cursor:"text"}}
@@ -351,13 +351,13 @@ export default function App() {
                   ? <div style={{display:"flex",gap:8,alignItems:"center"}}>
                       <input autoFocus defaultValue={proj.name}
                         placeholder="Project name..."
-                        style={{fontSize:16,fontWeight:700,padding:"8px 12px",border:"2px solid var(--purple)",borderRadius:"var(--r)",outline:"none",color:"var(--ink)",background:"var(--surface)",flex:1}}
+                        style={{fontSize:16,fontWeight:700,padding:"8px 12px",border:"2px solid var(--teal-accent)",borderRadius:"var(--r)",outline:"none",color:"var(--ink)",background:"var(--surface)",flex:1}}
                         onBlur={e=>{const v=e.target.value.trim()||"New project"; updProj(selProj,{name:v});setEditingProj(null);}}
                         onKeyDown={e=>{if(e.key==="Enter")e.target.blur();if(e.key==="Escape"){updProj(selProj,{name:proj.name||"New project"});setEditingProj(null);}}}/>
                       <button className="btn-secondary" onClick={()=>{updProj(selProj,{name:proj.name||"New project"});setEditingProj(null);}}>Save</button>
                     </div>
                   : <button onClick={()=>setEditingProj(selProj)}
-                      style={{display:"flex",alignItems:"center",gap:8,padding:"7px 14px",border:"1.5px solid var(--purple)",borderRadius:"var(--r)",background:"var(--purple-bg)",color:"var(--purple)",fontSize:13,fontWeight:700}}>
+                      style={{display:"flex",alignItems:"center",gap:8,padding:"7px 14px",border:"1.5px solid var(--teal-accent)",borderRadius:"var(--r)",background:"var(--teal-accent-bg)",color:"var(--teal-accent)",fontSize:13,fontWeight:700}}>
                       <i className="ti ti-pencil" style={{fontSize:14}}/> Rename project
                     </button>
                 }
@@ -392,7 +392,7 @@ export default function App() {
               </div>;
             })}
             <button style={{display:"flex",alignItems:"center",gap:10,padding:"15px 18px",background:"transparent",border:"2px dashed var(--border2)",borderRadius:"var(--r-xl)",color:"var(--ink4)",fontSize:13,fontWeight:600,transition:"all 0.15s"}} onClick={addProj}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--purple)";e.currentTarget.style.color="var(--purple)";e.currentTarget.style.background="var(--purple-bg)";}}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--teal-accent)";e.currentTarget.style.color="var(--teal-accent)";e.currentTarget.style.background="var(--teal-accent-bg)";}}
               onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border2)";e.currentTarget.style.color="var(--ink4)";e.currentTarget.style.background="transparent";}}>
               <i className="ti ti-plus" style={{fontSize:16}}/> New project
             </button>
@@ -544,7 +544,7 @@ function StatsView({tasks,projects,total,done,overdue,todayCount,pct}){
   const bp={high:tasks.filter(t=>t.priority==="high"&&!t.done&&!t.private).length,med:tasks.filter(t=>t.priority==="med"&&!t.done&&!t.private).length,low:tasks.filter(t=>t.priority==="low"&&!t.done&&!t.private).length};
   return<>
     <div className="stats-row">
-      {[{n:total,l:"Total tasks",c:"#6C47FF"},{n:done,l:"Completed",c:"#0FA884"},{n:overdue,l:"Overdue",c:"#E53E3E"},{n:todayCount,l:"Due today",c:"#D97706"}].map(({n,l,c})=>(
+      {[{n:total,l:"Total tasks",c:"#0D9488"},{n:done,l:"Completed",c:"#0FA884"},{n:overdue,l:"Overdue",c:"#E53E3E"},{n:todayCount,l:"Due today",c:"#D97706"}].map(({n,l,c})=>(
         <div key={l} className="stat-card">
           <div className="stat-num" style={{color:c}}>{n}</div>
           <div className="stat-lbl">{l}</div>
@@ -555,12 +555,12 @@ function StatsView({tasks,projects,total,done,overdue,todayCount,pct}){
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:22}}>
       <div className="stat-card" style={{display:"flex",alignItems:"center",gap:20}}>
         <svg width="100" height="100" viewBox="0 0 100 100">
-          <defs><linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#6C47FF"/><stop offset="100%" stopColor="#A67BFF"/></linearGradient></defs>
+          <defs><linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#0D9488"/><stop offset="100%" stopColor="#14B8A6"/></linearGradient></defs>
           <circle className="prog-track" cx="50" cy="50" r={r} strokeWidth="8"/>
           <circle className="prog-fill" cx="50" cy="50" r={r} strokeWidth="8" strokeDasharray={circ} strokeDashoffset={offset} style={{transform:"rotate(-90deg)",transformOrigin:"50% 50%"}}/>
           <text x="50" y="55" textAnchor="middle" fontSize="18" fontWeight="800" fill="#16151A">{pct}%</text>
         </svg>
-        <div><div style={{fontSize:28,fontWeight:800,letterSpacing:"-0.8px",color:"#6C47FF"}}>{pct}%</div><div className="stat-lbl">Overall done</div></div>
+        <div><div style={{fontSize:28,fontWeight:800,letterSpacing:"-0.8px",color:"#0D9488"}}>{pct}%</div><div className="stat-lbl">Overall done</div></div>
       </div>
       <div className="stat-card">
         <div className="stat-lbl" style={{marginBottom:12}}>By priority</div>
@@ -655,8 +655,8 @@ function TaskDetailModal({task,projects,onUpdate,onClose,onDelete}){
         <div style={{fontSize:10,fontWeight:800,color:"var(--ink4)",textTransform:"uppercase",letterSpacing:"0.8px",marginBottom:8}}>Tags</div>
         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
           {(task.tags||[]).map(t=>(
-            <span key={t} style={{display:"flex",alignItems:"center",gap:3,fontSize:12,fontWeight:700,padding:"3px 9px",borderRadius:20,background:"var(--purple-bg)",color:"var(--purple)"}}>
-              #{t}<button onClick={()=>onUpdate({tags:(task.tags||[]).filter(x=>x!==t)})} style={{background:"none",border:"none",cursor:"pointer",color:"var(--purple)",padding:0,lineHeight:1,fontSize:14,marginLeft:2}}>×</button>
+            <span key={t} style={{display:"flex",alignItems:"center",gap:3,fontSize:12,fontWeight:700,padding:"3px 9px",borderRadius:20,background:"var(--teal-accent-bg)",color:"var(--teal-accent)"}}>
+              #{t}<button onClick={()=>onUpdate({tags:(task.tags||[]).filter(x=>x!==t)})} style={{background:"none",border:"none",cursor:"pointer",color:"var(--teal-accent)",padding:0,lineHeight:1,fontSize:14,marginLeft:2}}>×</button>
             </span>
           ))}
         </div>
@@ -676,6 +676,7 @@ function TaskDetailModal({task,projects,onUpdate,onClose,onDelete}){
   </div>;
 }
 
+
 // ── MeetingsView ─────────────────────────────────────────────────────────────
 function MeetingsView({ meetings, onAdd, onDelete, onUpdate }) {
   const [showForm, setShowForm] = useState(false);
@@ -683,15 +684,41 @@ function MeetingsView({ meetings, onAdd, onDelete, onUpdate }) {
   const [expandedId, setExpandedId] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [newStep, setNewStep] = useState({});
 
   const submit = () => {
     if (!form.person.trim()) return;
-    onAdd({ person: form.person.trim(), date: form.date || new Date().toISOString().split("T")[0], discussed: form.discussed.trim(), nextSteps: form.nextSteps.trim() });
+    onAdd({
+      person: form.person.trim(),
+      date: form.date || new Date().toISOString().split("T")[0],
+      discussed: form.discussed.trim(),
+      steps: form.nextSteps.trim()
+        ? form.nextSteps.split("\n").filter(s => s.trim()).map(s => ({ id: `${Date.now()}_${Math.random().toString(36).slice(2)}`, text: s.trim(), done: false }))
+        : []
+    });
     setForm({ person: "", date: "", discussed: "", nextSteps: "" });
     setShowForm(false);
   };
 
-  const startEdit = (m) => { setEditingId(m.id); setEditForm({ person: m.person, date: m.date, discussed: m.discussed, nextSteps: m.nextSteps }); setExpandedId(m.id); };
+  const toggleStep = (meetingId, stepId) => {
+    const m = meetings.find(m => m.id === meetingId);
+    onUpdate(meetingId, { steps: (m.steps || []).map(s => s.id === stepId ? { ...s, done: !s.done } : s) });
+  };
+
+  const addStep = (meetingId) => {
+    const text = (newStep[meetingId] || "").trim();
+    if (!text) return;
+    const m = meetings.find(m => m.id === meetingId);
+    onUpdate(meetingId, { steps: [...(m.steps || []), { id: `${Date.now()}_${Math.random().toString(36).slice(2)}`, text, done: false }] });
+    setNewStep(s => ({ ...s, [meetingId]: "" }));
+  };
+
+  const deleteStep = (meetingId, stepId) => {
+    const m = meetings.find(m => m.id === meetingId);
+    onUpdate(meetingId, { steps: (m.steps || []).filter(s => s.id !== stepId) });
+  };
+
+  const startEdit = (m) => { setEditingId(m.id); setEditForm({ person: m.person, date: m.date, discussed: m.discussed || "" }); setExpandedId(m.id); };
   const saveEdit = (id) => { onUpdate(id, editForm); setEditingId(null); };
 
   const fmtDate = d => { if (!d) return ""; const dt = new Date(d + "T00:00:00"); return dt.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" }); };
@@ -699,19 +726,18 @@ function MeetingsView({ meetings, onAdd, onDelete, onUpdate }) {
   return (
     <div>
       <button onClick={() => setShowForm(v => !v)}
-        style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", borderRadius: "var(--r-lg)", background: showForm ? "var(--surface2)" : "linear-gradient(135deg, var(--purple), var(--purple2))", border: "none", color: showForm ? "var(--ink3)" : "#fff", fontSize: 13, fontWeight: 700, marginBottom: 20, boxShadow: showForm ? "none" : "0 2px 8px rgba(108,71,255,0.3)", cursor: "pointer" }}>
+        style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", borderRadius: "var(--r-lg)", background: showForm ? "var(--surface2)" : "linear-gradient(135deg, var(--teal-accent), var(--teal-accent2))", border: "none", color: showForm ? "var(--ink3)" : "#fff", fontSize: 13, fontWeight: 700, marginBottom: 20, boxShadow: showForm ? "none" : "0 2px 8px rgba(13,148,136,0.3)", cursor: "pointer" }}>
         <i className={`ti ${showForm ? "ti-x" : "ti-plus"}`} style={{ fontSize: 15 }} />
         {showForm ? "Cancel" : "Add meeting"}
       </button>
 
       {showForm && (
-        <div style={{ background: "var(--surface)", border: "2px solid var(--purple)", borderRadius: "var(--r-xl)", padding: 20, marginBottom: 20, boxShadow: "0 0 0 4px rgba(108,71,255,0.06)" }}>
+        <div style={{ background: "var(--surface)", border: "2px solid var(--teal-accent)", borderRadius: "var(--r-xl)", padding: 20, marginBottom: 20, boxShadow: "0 0 0 4px rgba(13,148,136,0.06)" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
             <div>
               <label style={{ fontSize: 11, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", display: "block", marginBottom: 6 }}>With whom *</label>
               <input value={form.person} onChange={e => setForm(f => ({ ...f, person: e.target.value }))} placeholder="Name or team..."
-                style={{ width: "100%", fontSize: 14, fontWeight: 500, padding: "8px 12px", border: "1.5px solid var(--border)", borderRadius: "var(--r)", outline: "none", color: "var(--ink)", background: "var(--surface2)" }}
-                onKeyDown={e => { if (e.key === "Enter") submit(); }} />
+                style={{ width: "100%", fontSize: 14, fontWeight: 500, padding: "8px 12px", border: "1.5px solid var(--border)", borderRadius: "var(--r)", outline: "none", color: "var(--ink)", background: "var(--surface2)" }} />
             </div>
             <div>
               <label style={{ fontSize: 11, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", display: "block", marginBottom: 6 }}>Date</label>
@@ -725,9 +751,9 @@ function MeetingsView({ meetings, onAdd, onDelete, onUpdate }) {
               style={{ width: "100%", fontSize: 13, padding: "10px 12px", border: "1.5px solid var(--border)", borderRadius: "var(--r)", outline: "none", color: "var(--ink2)", background: "var(--surface2)", resize: "vertical", minHeight: 80, lineHeight: 1.6 }} />
           </div>
           <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 11, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", display: "block", marginBottom: 6 }}>Next steps</label>
-            <textarea value={form.nextSteps} onChange={e => setForm(f => ({ ...f, nextSteps: e.target.value }))} placeholder="Action items, follow-ups..."
-              style={{ width: "100%", fontSize: 13, padding: "10px 12px", border: "1.5px solid var(--border)", borderRadius: "var(--r)", outline: "none", color: "var(--ink2)", background: "var(--surface2)", resize: "vertical", minHeight: 70, lineHeight: 1.6 }} />
+            <label style={{ fontSize: 11, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", display: "block", marginBottom: 6 }}>Next steps (one per line)</label>
+            <textarea value={form.nextSteps} onChange={e => setForm(f => ({ ...f, nextSteps: e.target.value }))} placeholder={"Follow up with team\nSend report by Friday\nSchedule next call"}
+              style={{ width: "100%", fontSize: 13, padding: "10px 12px", border: "1.5px solid var(--border)", borderRadius: "var(--r)", outline: "none", color: "var(--ink2)", background: "var(--surface2)", resize: "vertical", minHeight: 80, lineHeight: 1.6 }} />
           </div>
           <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
             <button className="btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
@@ -744,87 +770,122 @@ function MeetingsView({ meetings, onAdd, onDelete, onUpdate }) {
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {meetings.map(m => (
-          <div key={m.id} style={{ background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: "var(--r-xl)", overflow: "hidden", boxShadow: "var(--s0)", transition: "box-shadow 0.15s" }}
-            onMouseEnter={e => e.currentTarget.style.boxShadow = "var(--s1)"}
-            onMouseLeave={e => e.currentTarget.style.boxShadow = "var(--s0)"}>
+        {meetings.map(m => {
+          const steps = m.steps || [];
+          const doneSteps = steps.filter(s => s.done).length;
+          const hasSteps = steps.length > 0;
 
-            {/* Header */}
-            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", cursor: "pointer" }} onClick={() => setExpandedId(expandedId === m.id ? null : m.id)}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--purple-bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <i className="ti ti-user" style={{ fontSize: 17, color: "var(--purple)" }} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", marginBottom: 2 }}>{m.person}</div>
-                <div style={{ fontSize: 12, color: "var(--ink4)", fontWeight: 500 }}>{fmtDate(m.date)}</div>
-              </div>
-              {m.nextSteps && (
-                <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: "var(--teal-bg)", color: "var(--teal)", flexShrink: 0 }}>Has next steps</span>
-              )}
-              <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-                <button onClick={e => { e.stopPropagation(); startEdit(m); }} style={{ width: 28, height: 28, borderRadius: 7, background: "var(--surface2)", border: "1px solid var(--border)", color: "var(--ink3)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-                  <i className="ti ti-pencil" style={{ fontSize: 13 }} />
-                </button>
-                <button onClick={e => { e.stopPropagation(); onDelete(m.id); }} style={{ width: 28, height: 28, borderRadius: 7, background: "var(--red-bg)", border: "1px solid var(--red)", color: "var(--red)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-                  <i className="ti ti-trash" style={{ fontSize: 13 }} />
-                </button>
-              </div>
-              <i className={`ti ${expandedId === m.id ? "ti-chevron-up" : "ti-chevron-down"}`} style={{ fontSize: 14, color: "var(--ink4)", flexShrink: 0 }} />
-            </div>
+          return (
+            <div key={m.id} style={{ background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: "var(--r-xl)", overflow: "hidden", boxShadow: "var(--s0)", transition: "box-shadow 0.15s" }}
+              onMouseEnter={e => e.currentTarget.style.boxShadow = "var(--s1)"}
+              onMouseLeave={e => e.currentTarget.style.boxShadow = "var(--s0)"}>
 
-            {/* Expanded content */}
-            {expandedId === m.id && (
-              <div style={{ borderTop: "1px solid var(--border)", padding: "16px 18px" }}>
-                {editingId === m.id ? (
-                  <div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
-                      <div>
-                        <label style={{ fontSize: 10, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", display: "block", marginBottom: 4 }}>With whom</label>
-                        <input value={editForm.person} onChange={e => setEditForm(f => ({ ...f, person: e.target.value }))}
-                          style={{ width: "100%", fontSize: 13, padding: "7px 10px", border: "1.5px solid var(--purple)", borderRadius: 8, outline: "none", color: "var(--ink)", background: "var(--surface2)" }} />
-                      </div>
-                      <div>
-                        <label style={{ fontSize: 10, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", display: "block", marginBottom: 4 }}>Date</label>
-                        <input type="date" value={editForm.date} onChange={e => setEditForm(f => ({ ...f, date: e.target.value }))}
-                          style={{ width: "100%", fontSize: 13, padding: "7px 10px", border: "1.5px solid var(--border)", borderRadius: 8, outline: "none", color: "var(--ink)", background: "var(--surface2)" }} />
-                      </div>
+              {/* Header */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", cursor: "pointer" }} onClick={() => setExpandedId(expandedId === m.id ? null : m.id)}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--teal-accent-bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <i className="ti ti-user" style={{ fontSize: 17, color: "var(--teal-accent)" }} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", marginBottom: 2 }}>{m.person}</div>
+                  <div style={{ fontSize: 12, color: "var(--ink4)", fontWeight: 500 }}>{fmtDate(m.date)}</div>
+                </div>
+                {hasSteps && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: doneSteps === steps.length ? "var(--teal)" : "var(--ink3)" }}>
+                      {doneSteps}/{steps.length} done
                     </div>
-                    <div style={{ marginBottom: 10 }}>
-                      <label style={{ fontSize: 10, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", display: "block", marginBottom: 4 }}>What was discussed</label>
-                      <textarea value={editForm.discussed} onChange={e => setEditForm(f => ({ ...f, discussed: e.target.value }))}
-                        style={{ width: "100%", fontSize: 13, padding: "8px 10px", border: "1.5px solid var(--border)", borderRadius: 8, outline: "none", color: "var(--ink2)", background: "var(--surface2)", resize: "vertical", minHeight: 70, lineHeight: 1.6 }} />
+                    <div style={{ width: 48, height: 4, background: "var(--surface3)", borderRadius: 2, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${steps.length > 0 ? Math.round(doneSteps / steps.length * 100) : 0}%`, background: "var(--teal)", borderRadius: 2, transition: "width 0.3s" }} />
                     </div>
-                    <div style={{ marginBottom: 12 }}>
-                      <label style={{ fontSize: 10, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", display: "block", marginBottom: 4 }}>Next steps</label>
-                      <textarea value={editForm.nextSteps} onChange={e => setEditForm(f => ({ ...f, nextSteps: e.target.value }))}
-                        style={{ width: "100%", fontSize: 13, padding: "8px 10px", border: "1.5px solid var(--border)", borderRadius: 8, outline: "none", color: "var(--ink2)", background: "var(--surface2)", resize: "vertical", minHeight: 60, lineHeight: 1.6 }} />
-                    </div>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <button className="btn-primary" style={{ fontSize: 12, padding: "6px 16px" }} onClick={() => saveEdit(m.id)}>Save</button>
-                      <button className="btn-secondary" style={{ fontSize: 12, padding: "6px 12px" }} onClick={() => setEditingId(null)}>Cancel</button>
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                    {m.discussed && (
-                      <div>
-                        <div style={{ fontSize: 10, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", marginBottom: 8 }}>💬 Discussed</div>
-                        <div style={{ fontSize: 13, color: "var(--ink2)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{m.discussed}</div>
-                      </div>
-                    )}
-                    {m.nextSteps && (
-                      <div>
-                        <div style={{ fontSize: 10, fontWeight: 700, color: "var(--teal)", textTransform: "uppercase", letterSpacing: "0.7px", marginBottom: 8 }}>✅ Next steps</div>
-                        <div style={{ fontSize: 13, color: "var(--ink2)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{m.nextSteps}</div>
-                      </div>
-                    )}
-                    {!m.discussed && !m.nextSteps && <div style={{ fontSize: 13, color: "var(--ink4)", fontStyle: "italic" }}>No notes added</div>}
                   </div>
                 )}
+                <div style={{ display: "flex", gap: 4, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+                  <button onClick={() => startEdit(m)} style={{ width: 28, height: 28, borderRadius: 7, background: "var(--surface2)", border: "1px solid var(--border)", color: "var(--ink3)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                    <i className="ti ti-pencil" style={{ fontSize: 13 }} />
+                  </button>
+                  <button onClick={() => onDelete(m.id)} style={{ width: 28, height: 28, borderRadius: 7, background: "var(--red-bg)", border: "1px solid var(--red)", color: "var(--red)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                    <i className="ti ti-trash" style={{ fontSize: 13 }} />
+                  </button>
+                </div>
+                <i className={`ti ${expandedId === m.id ? "ti-chevron-up" : "ti-chevron-down"}`} style={{ fontSize: 14, color: "var(--ink4)", flexShrink: 0 }} />
               </div>
-            )}
-          </div>
-        ))}
+
+              {/* Expanded */}
+              {expandedId === m.id && (
+                <div style={{ borderTop: "1px solid var(--border)", padding: "16px 18px" }}>
+                  {editingId === m.id ? (
+                    <div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+                        <div>
+                          <label style={{ fontSize: 10, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", display: "block", marginBottom: 4 }}>With whom</label>
+                          <input value={editForm.person} onChange={e => setEditForm(f => ({ ...f, person: e.target.value }))}
+                            style={{ width: "100%", fontSize: 13, padding: "7px 10px", border: "1.5px solid var(--teal-accent)", borderRadius: 8, outline: "none", color: "var(--ink)", background: "var(--surface2)" }} />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: 10, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", display: "block", marginBottom: 4 }}>Date</label>
+                          <input type="date" value={editForm.date} onChange={e => setEditForm(f => ({ ...f, date: e.target.value }))}
+                            style={{ width: "100%", fontSize: 13, padding: "7px 10px", border: "1.5px solid var(--border)", borderRadius: 8, outline: "none", color: "var(--ink)", background: "var(--surface2)" }} />
+                        </div>
+                      </div>
+                      <div style={{ marginBottom: 12 }}>
+                        <label style={{ fontSize: 10, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", display: "block", marginBottom: 4 }}>What was discussed</label>
+                        <textarea value={editForm.discussed} onChange={e => setEditForm(f => ({ ...f, discussed: e.target.value }))}
+                          style={{ width: "100%", fontSize: 13, padding: "8px 10px", border: "1.5px solid var(--border)", borderRadius: 8, outline: "none", color: "var(--ink2)", background: "var(--surface2)", resize: "vertical", minHeight: 70, lineHeight: 1.6 }} />
+                      </div>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button className="btn-primary" style={{ fontSize: 12, padding: "6px 16px" }} onClick={() => saveEdit(m.id)}>Save</button>
+                        <button className="btn-secondary" style={{ fontSize: 12, padding: "6px 12px" }} onClick={() => setEditingId(null)}>Cancel</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      {/* Discussed */}
+                      {m.discussed && (
+                        <div style={{ marginBottom: 16 }}>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", marginBottom: 8 }}>💬 Discussed</div>
+                          <div style={{ fontSize: 13, color: "var(--ink2)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{m.discussed}</div>
+                        </div>
+                      )}
+
+                      {/* Next steps as tasks */}
+                      <div>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: "var(--teal)", textTransform: "uppercase", letterSpacing: "0.7px", marginBottom: 10 }}>✅ Next steps</div>
+                        {steps.length === 0 && <div style={{ fontSize: 13, color: "var(--ink4)", fontStyle: "italic", marginBottom: 10 }}>No next steps yet</div>}
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+                          {steps.map(step => (
+                            <div key={step.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", background: step.done ? "var(--teal-bg)" : "var(--surface2)", borderRadius: "var(--r)", border: `1px solid ${step.done ? "var(--teal)" : "var(--border)"}`, transition: "all 0.15s" }}>
+                              <button onClick={() => toggleStep(m.id, step.id)}
+                                style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${step.done ? "var(--teal)" : "var(--border2)"}`, background: step.done ? "var(--teal)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, transition: "all 0.15s" }}>
+                                {step.done && <i className="ti ti-check" style={{ fontSize: 10, color: "#fff" }} />}
+                              </button>
+                              <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: step.done ? "var(--teal)" : "var(--ink)", textDecoration: step.done ? "line-through" : "none", opacity: step.done ? 0.7 : 1 }}>{step.text}</span>
+                              <button onClick={() => deleteStep(m.id, step.id)}
+                                style={{ width: 22, height: 22, borderRadius: 6, background: "none", border: "none", color: "var(--ink4)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, opacity: 0.6 }}>
+                                <i className="ti ti-x" style={{ fontSize: 12 }} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Add new step */}
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <input value={newStep[m.id] || ""} onChange={e => setNewStep(s => ({ ...s, [m.id]: e.target.value }))}
+                            placeholder="Add next step..."
+                            style={{ flex: 1, fontSize: 13, padding: "7px 11px", border: "1.5px solid var(--border)", borderRadius: 8, outline: "none", color: "var(--ink)", background: "var(--surface)" }}
+                            onKeyDown={e => { if (e.key === "Enter") addStep(m.id); }} />
+                          <button onClick={() => addStep(m.id)}
+                            style={{ padding: "7px 14px", borderRadius: 8, background: "var(--teal-accent-bg)", border: "1.5px solid var(--teal-accent)", color: "var(--teal-accent)", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+                            + Add
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
