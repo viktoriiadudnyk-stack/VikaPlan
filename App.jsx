@@ -26,8 +26,8 @@ const isFuture = d => d&&d>todayStr();
 const quote = QUOTES[new Date().getDay()%QUOTES.length];
 
 const INIT = { tasks:[], projects:[], focus:{text:"",done:false}, meetings:[], notes:[], links:[] };
-const load = () => { try{ const s=localStorage.getItem("vikaplan_v6"); return s?{...INIT,...JSON.parse(s)}:INIT; }catch{return INIT;} };
-const persist = s => { try{localStorage.setItem("vikaplan_v6",JSON.stringify(s));}catch{} };
+const load = () => { try{ const s=localStorage.getItem("vikawh_v1"); return s?{...INIT,...JSON.parse(s)}:INIT; }catch{return INIT;} };
+const persist = s => { try{localStorage.setItem("vikawh_v1",JSON.stringify(s));}catch{} };
 
 export default function App() {
   const [st, setSt] = useState(load);
@@ -209,14 +209,14 @@ export default function App() {
     <div className="app">
       <div className="mobile-bar">
         <button className="hamburger" onClick={()=>setSidebarOpen(v=>!v)}><i className="ti ti-menu-2" style={{fontSize:20}}/></button>
-        <span style={{fontSize:15,fontWeight:800,letterSpacing:"-0.4px"}}>Vika Plan</span>
+        <span style={{fontSize:15,fontWeight:800,letterSpacing:"-0.4px"}}>Vika Work Hub</span>
       </div>
       {sidebarOpen&&<div className="overlay" onClick={()=>setSidebarOpen(false)}/>}
 
       <aside className={`sidebar${sidebarOpen?" open":""}`}>
         <div className="sidebar-logo">
           <div className="logo-mark"><i className="ti ti-bolt"/></div>
-          <span className="logo-text">Vika Plan</span>
+          <span className="logo-text">Vika Work Hub</span>
           <span className="logo-pro">PRO</span>
         </div>
         <div className="nav-area">
