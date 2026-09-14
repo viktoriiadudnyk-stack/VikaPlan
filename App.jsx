@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, forwardRef, useEffect } from "react";
 
-const VIEWS = { TODAY:"today", UPCOMING:"upcoming", INBOX:"inbox", PRIVATE:"private", PROJECTS:"projects", CALENDAR:"calendar", STATS:"stats", NOTES:"notes", LINKS:"links", MEETINGS:"meetings" };
+const VIEWS = { TODAY:"today", UPCOMING:"upcoming", INBOX:"inbox", PRIVATE:"private", PROJECTS:"projects", CALENDAR:"calendar", STATS:"stats", NOTES:"notes", LINKS:"links", MEETINGS:"meetings", TEAM:"team" };
 const P = { HIGH:"high", MED:"med", LOW:"low", NONE:"none" };
 const P_LABEL = { high:"High", med:"Medium", low:"Low", none:"No priority" };
 const REPEAT_OPT = { none:"No repeat", daily:"Daily", weekly:"Weekly", monthly:"Monthly" };
@@ -25,7 +25,7 @@ const isPast = d => d&&d<todayStr();
 const isFuture = d => d&&d>todayStr();
 const quote = QUOTES[new Date().getDay()%QUOTES.length];
 
-const INIT = { tasks:[], projects:[], focus:{text:"",done:false}, meetings:[], notes:[], links:[] };
+const INIT = { tasks:[], projects:[], focus:{text:"",done:false}, meetings:[], notes:[], links:[], team:[] };
 const load = () => { try{ const s=localStorage.getItem("vikawh_v1"); return s?{...INIT,...JSON.parse(s)}:INIT; }catch{return INIT;} };
 const persist = s => { try{localStorage.setItem("vikawh_v1",JSON.stringify(s));}catch{} };
 
@@ -96,6 +96,11 @@ export default function App() {
   const addMeeting = fields => upd({...st,meetings:[{id:gid(),name:"",date:"",topics:[],steps:[],notes:"",createdAt:Date.now(),...fields},...(st.meetings||[])]});
   const updMeeting = (id,fields) => upd({...st,meetings:(st.meetings||[]).map(m=>m.id===id?{...m,...fields}:m)});
   const delMeeting = id => { upd({...st,meetings:(st.meetings||[]).filter(m=>m.id!==id)}); showToast("Meeting deleted"); };
+
+  // Team meetings
+  const addTeamMeeting = fields => upd({...st,team:[{id:gid(),name:"",date:"",topics:[],steps:[],notes:"",createdAt:Date.now(),...fields},...(st.team||[])]});
+  const updTeamMeeting = (id,fields) => upd({...st,team:(st.team||[]).map(m=>m.id===id?{...m,...fields}:m)});
+  const delTeamMeeting = id => { upd({...st,team:(st.team||[]).filter(m=>m.id!==id)}); showToast("Meeting deleted"); };
 
   // Voice
   const startVoice = () => {
@@ -250,6 +255,10 @@ export default function App() {
             <i className="ti ti-users"/><span className="nav-btn-label">1:1 Meetings</span>
             {(st.meetings||[]).length>0&&<span className="nav-badge">{(st.meetings||[]).length}</span>}
           </button>
+          <button className={`nav-btn${view===VIEWS.TEAM&&!selProj?" active":""}`} onClick={()=>nav(VIEWS.TEAM)}>
+            <i className="ti ti-building-community"/><span className="nav-btn-label">Team 1:1s</span>
+            {(st.team||[]).length>0&&<span className="nav-badge">{(st.team||[]).length}</span>}
+          </button>
 
           <div className="nav-sep"/>
           <div className="nav-group-label">Analytics</div>
@@ -293,6 +302,7 @@ export default function App() {
             {view===VIEWS.NOTES&&<p className="page-sub">Your personal notes</p>}
             {view===VIEWS.LINKS&&<p className="page-sub">Your saved links</p>}
             {view===VIEWS.MEETINGS&&<p className="page-sub">Your 1:1 meetings</p>}
+            {view===VIEWS.TEAM&&<p className="page-sub">Notes & next steps with your team</p>}
           </div>
           <div style={{display:"flex",gap:8,paddingTop:6}}>
             {view===VIEWS.PROJECTS&&selProj&&<>
@@ -371,6 +381,7 @@ export default function App() {
           {view===VIEWS.NOTES&&<NotesView notes={st.notes||[]} onAdd={addNote} onUpdate={updNote} onDelete={delNote}/>}
           {view===VIEWS.LINKS&&<LinksView links={st.links||[]} onAdd={addLink} onUpdate={updLink} onDelete={delLink}/>}
           {view===VIEWS.MEETINGS&&<MeetingsView meetings={st.meetings||[]} onAdd={addMeeting} onUpdate={updMeeting} onDelete={delMeeting}/>}
+          {view===VIEWS.TEAM&&<MeetingsView meetings={st.team||[]} onAdd={addTeamMeeting} onUpdate={updTeamMeeting} onDelete={delTeamMeeting} isTeam/>}
 
           {view===VIEWS.PROJECTS&&selProj&&(()=>{
             const proj=st.projects.find(p=>p.id===selProj);
@@ -785,7 +796,7 @@ function LinksView({ links, onAdd, onUpdate, onDelete }) {
 }
 
 // ── MEETINGS VIEW ─────────────────────────────────────────────────────────────
-function MeetingsView({ meetings, onAdd, onUpdate, onDelete }) {
+function MeetingsView({ meetings, onAdd, onUpdate, onDelete, isTeam=false }) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", date: "" });
   const [expandedId, setExpandedId] = useState(null);
@@ -835,15 +846,15 @@ function MeetingsView({ meetings, onAdd, onUpdate, onDelete }) {
       <button onClick={() => setShowForm(v => !v)}
         style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 18px", borderRadius: "var(--r-lg)", background: showForm ? "var(--surface2)" : "linear-gradient(135deg, var(--teal-accent), var(--teal-accent2))", border: "none", color: showForm ? "var(--ink3)" : "#fff", fontSize: 13, fontWeight: 700, marginBottom: 18, boxShadow: showForm ? "none" : "0 2px 8px rgba(13,148,136,0.3)", cursor: "pointer" }}>
         <i className={`ti ${showForm ? "ti-x" : "ti-plus"}`} style={{ fontSize: 15 }} />
-        {showForm ? "Cancel" : "New 1:1"}
+        {showForm ? "Cancel" : isTeam ? "Add team member" : "New 1:1"}
       </button>
 
       {showForm && (
         <div style={{ background: "var(--surface)", border: "2px solid var(--teal-accent)", borderRadius: "var(--r-xl)", padding: 18, marginBottom: 18, boxShadow: "0 0 0 4px rgba(13,148,136,0.06)" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
             <div>
-              <label style={{ fontSize: 10, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", display: "block", marginBottom: 5 }}>Meeting name / person *</label>
-              <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. 1:1 with Anna"
+              <label style={{ fontSize: 10, fontWeight: 700, color: "var(--ink4)", textTransform: "uppercase", letterSpacing: "0.7px", display: "block", marginBottom: 5 }}>{isTeam ? "Team member name *" : "Meeting name / person *"}</label>
+              <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder={isTeam ? "e.g. Anna, John..." : "e.g. 1:1 with Anna"}
                 style={{ width: "100%", fontSize: 14, fontWeight: 600, padding: "9px 12px", border: "1.5px solid var(--border)", borderRadius: "var(--r)", outline: "none", color: "var(--ink)", background: "var(--surface2)" }}
                 onKeyDown={e => { if (e.key === "Enter" && form.name.trim()) { onAdd({ name: form.name.trim(), date: form.date }); setForm({ name: "", date: "" }); setShowForm(false); } }} />
             </div>
@@ -876,7 +887,7 @@ function MeetingsView({ meetings, onAdd, onUpdate, onDelete }) {
               {/* Header */}
               <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", cursor: "pointer" }} onClick={() => setExpandedId(isExpanded ? null : m.id)}>
                 <div style={{ width: 38, height: 38, borderRadius: 11, background: "var(--teal-accent-bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <i className="ti ti-users" style={{ fontSize: 17, color: "var(--teal-accent)" }} />
+                  <i className={isTeam ? "ti ti-user-circle" : "ti ti-users"} style={{ fontSize: 17, color: "var(--teal-accent)" }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>{m.name}</div>
