@@ -25,7 +25,7 @@ const isPast = d => d&&d<todayStr();
 const isFuture = d => d&&d>todayStr();
 const quote = QUOTES[new Date().getDay()%QUOTES.length];
 
-const INIT = { tasks:[], projects:[], focus:{text:"",done:false}, meetings:[], notes:[], links:[], team:[] };
+const INIT = { tasks:[], projects:[], focus:{text:"",done:false}, meetings:[], notes:[], links:[], team:[], team:[] };
 const load = () => { try{ const s=localStorage.getItem("vikawh_v1"); return s?{...INIT,...JSON.parse(s)}:INIT; }catch{return INIT;} };
 const persist = s => { try{localStorage.setItem("vikawh_v1",JSON.stringify(s));}catch{} };
 
