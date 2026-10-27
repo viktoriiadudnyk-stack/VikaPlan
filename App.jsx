@@ -39,6 +39,7 @@ export default function App() {
   const [addingTo, setAddingTo] = useState(null);
   const [editingTask, setEditingTask] = useState(null);
   const [editingProj, setEditingProj] = useState(null);
+  const [renameProjVal, setRenameProjVal] = useState("");
   const [confirmDel, setConfirmDel] = useState(null);
   const [toast, setToast] = useState(null);
   const [voiceModal, setVoiceModal] = useState(false);
