@@ -40,6 +40,7 @@ export default function App() {
   const [editingTask, setEditingTask] = useState(null);
   const [editingProj, setEditingProj] = useState(null);
   const [renameProjVal, setRenameProjVal] = useState("");
+  const [showRenameModal, setShowRenameModal] = useState(false);
   const [confirmDel, setConfirmDel] = useState(null);
   const [toast, setToast] = useState(null);
   const [voiceModal, setVoiceModal] = useState(false);
@@ -307,12 +308,7 @@ export default function App() {
       <div className="main">
         <div className="topbar">
           <div>
-            {view===VIEWS.PROJECTS&&selProj
-              ?editingProj===selProj
-                ?<input autoFocus defaultValue={st.projects.find(p=>p.id===selProj)?.name||""} className="page-title" style={{background:"transparent",border:"none",borderBottom:"2px solid var(--teal-accent)",outline:"none",fontSize:24,fontWeight:800,letterSpacing:"-0.7px",color:"var(--ink)",padding:"0 0 2px",minWidth:200}} onBlur={e=>{updProj(selProj,{name:e.target.value||"New project"});setEditingProj(null);}} onKeyDown={e=>{if(e.key==="Enter"||e.key==="Escape")e.target.blur();}}/>
-                :<h1 className="page-title" onClick={()=>setEditingProj(selProj)} style={{cursor:"text"}}>{pageTitle}</h1>
-              :<h1 className="page-title">{pageTitle}</h1>
-            }
+            <h1 className="page-title">{pageTitle}</h1>
             {view===VIEWS.TODAY&&<p className="page-sub">{new Date().toLocaleDateString("en-US",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</p>}
             {view===VIEWS.PRIVATE&&<p className="page-sub">Stored only on this device</p>}
             {view===VIEWS.PRIVATE_PROJECTS&&<p className="page-sub">Private — only visible on this device</p>}
@@ -322,9 +318,9 @@ export default function App() {
             {view===VIEWS.TEAM&&<p className="page-sub">Notes & next steps with your team</p>}
           </div>
           <div style={{display:"flex",gap:8,paddingTop:6}}>
-            {view===VIEWS.PROJECTS&&selProj&&<>
-              <button onClick={()=>setEditingProj(selProj)} style={{display:"flex",alignItems:"center",justifyContent:"center",width:34,height:34,borderRadius:9,background:"var(--surface2)",border:"1.5px solid var(--border)",color:"var(--ink2)",cursor:"pointer"}}><i className="ti ti-pencil" style={{fontSize:16}}/></button>
-              <button onClick={()=>setConfirmDel({type:"project",id:selProj})} style={{display:"flex",alignItems:"center",justifyContent:"center",width:34,height:34,borderRadius:9,background:"var(--red-bg)",border:"1.5px solid var(--red)",color:"var(--red)",cursor:"pointer"}}><i className="ti ti-trash" style={{fontSize:16}}/></button>
+            {(view===VIEWS.PROJECTS||view===VIEWS.PRIVATE_PROJECTS)&&selProj&&<>
+              <button onClick={()=>{const p=view===VIEWS.PROJECTS?st.projects.find(p=>p.id===selProj):(st.privateProjects||[]).find(p=>p.id===selProj);setRenameProjVal(p?.name||"");setShowRenameModal(true);}} style={{display:"flex",alignItems:"center",gap:6,padding:"6px 14px",borderRadius:9,background:"var(--surface2)",border:"1.5px solid var(--border)",color:"var(--ink2)",cursor:"pointer",fontSize:13,fontWeight:600}}><i className="ti ti-pencil" style={{fontSize:14}}/>Rename</button>
+              <button onClick={()=>setConfirmDel({type:view===VIEWS.PRIVATE_PROJECTS?"private_project":"project",id:selProj})} style={{display:"flex",alignItems:"center",gap:6,padding:"6px 14px",borderRadius:9,background:"var(--red-bg)",border:"1.5px solid var(--red)",color:"var(--red)",cursor:"pointer",fontSize:13,fontWeight:600}}><i className="ti ti-trash" style={{fontSize:14}}/>Delete</button>
             </>}
           </div>
         </div>
@@ -419,15 +415,7 @@ export default function App() {
             if(!proj)return null;
             const pt=filterFn(st.tasks.filter(t=>t.projectId===selProj));
             return<>
-              <div style={{marginBottom:16}}>
-                {editingProj===selProj
-                  ?<div style={{display:"flex",gap:8}}>
-                      <input autoFocus defaultValue={proj.name} placeholder="Project name..." style={{fontSize:15,fontWeight:700,padding:"8px 12px",border:"2px solid var(--teal-accent)",borderRadius:"var(--r)",outline:"none",color:"var(--ink)",background:"var(--surface)",flex:1}} onBlur={e=>{updProj(selProj,{name:e.target.value||"New project"});setEditingProj(null);}} onKeyDown={e=>{if(e.key==="Enter")e.target.blur();}}/>
-                      <button className="btn-secondary" onClick={()=>setEditingProj(null)}>Save</button>
-                    </div>
-                  :<button onClick={()=>setEditingProj(selProj)} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 14px",border:"1.5px solid var(--teal-accent)",borderRadius:"var(--r)",background:"var(--teal-accent-bg)",color:"var(--teal-accent)",fontSize:13,fontWeight:700,cursor:"pointer"}}><i className="ti ti-pencil" style={{fontSize:14}}/> Rename project</button>
-                }
-              </div>
+
               <div style={{display:"flex",gap:8,marginBottom:18,flexWrap:"wrap"}}>
                 {PROJ_COLORS.map(c=><button key={c} onClick={()=>updProj(selProj,{color:c})} style={{width:22,height:22,borderRadius:"50%",background:c,border:proj.color===c?"3px solid var(--ink)":"none",padding:0,cursor:"pointer"}}/>)}
               </div>
@@ -480,6 +468,19 @@ export default function App() {
 
       {taskDetail&&<TaskDetailModal task={taskDetail} projects={st.projects} onUpdate={f=>{updTask(taskDetail.id,f);setTaskDetail({...taskDetail,...f});}} onClose={()=>setTaskDetail(null)} onDelete={()=>{delTask(taskDetail.id);setTaskDetail(null);}}/>}
 
+      {showRenameModal&&<div className="modal-bg" onClick={()=>setShowRenameModal(false)}>
+        <div className="modal" onClick={e=>e.stopPropagation()}>
+          <div className="modal-title">Rename project</div>
+          <input autoFocus value={renameProjVal} onChange={e=>setRenameProjVal(e.target.value)}
+            placeholder="Project name..."
+            style={{width:"100%",fontSize:15,fontWeight:600,padding:"10px 14px",border:"2px solid var(--teal-accent)",borderRadius:"var(--r-lg)",outline:"none",color:"var(--ink)",background:"var(--surface2)",marginBottom:16}}
+            onKeyDown={e=>{if(e.key==="Enter"&&renameProjVal.trim()){if(view===VIEWS.PROJECTS)updProj(selProj,{name:renameProjVal.trim()});else updPrivateProj(selProj,{name:renameProjVal.trim()});setShowRenameModal(false);}if(e.key==="Escape")setShowRenameModal(false);}}/>
+          <div className="modal-actions">
+            <button className="btn-secondary" onClick={()=>setShowRenameModal(false)}>Cancel</button>
+            <button className="btn-primary" onClick={()=>{if(renameProjVal.trim()){if(view===VIEWS.PROJECTS)updProj(selProj,{name:renameProjVal.trim()});else updPrivateProj(selProj,{name:renameProjVal.trim()});}setShowRenameModal(false);}}>Save</button>
+          </div>
+        </div>
+      </div>}
       {confirmDel&&<div className="modal-bg" onClick={()=>setConfirmDel(null)}>
         <div className="modal" onClick={e=>e.stopPropagation()}>
           <div className="modal-title">Delete?</div>
