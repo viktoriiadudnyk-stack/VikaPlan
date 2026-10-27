@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, forwardRef, useEffect } from "react";
 
-const VIEWS = { TODAY:"today", UPCOMING:"upcoming", INBOX:"inbox", PRIVATE:"private", PROJECTS:"projects", CALENDAR:"calendar", STATS:"stats", NOTES:"notes", LINKS:"links", MEETINGS:"meetings", TEAM:"team" };
+const VIEWS = { TODAY:"today", UPCOMING:"upcoming", INBOX:"inbox", PRIVATE:"private", PRIVATE_PROJECTS:"private_projects", PROJECTS:"projects", CALENDAR:"calendar", STATS:"stats", NOTES:"notes", LINKS:"links", MEETINGS:"meetings", TEAM:"team" };
 const P = { HIGH:"high", MED:"med", LOW:"low", NONE:"none" };
 const P_LABEL = { high:"High", med:"Medium", low:"Low", none:"No priority" };
 const REPEAT_OPT = { none:"No repeat", daily:"Daily", weekly:"Weekly", monthly:"Monthly" };
@@ -16,6 +16,8 @@ const QUOTES = [
   { text: "Do the hard work, especially when you don't feel like it.", author: "Seth Godin" },
 ];
 
+const P_ORDER = { high:0, med:1, low:2, none:3 };
+const sortByPriority = tasks => [...tasks].sort((a,b) => (P_ORDER[a.priority]||3)-(P_ORDER[b.priority]||3));
 const gid = () => `${Date.now()}_${Math.random().toString(36).slice(2)}`;
 const todayStr = () => new Date().toISOString().split("T")[0];
 const fmtDate = d => { if(!d)return""; const dt=new Date(d+"T00:00:00"); return dt.toLocaleDateString("en-US",{day:"numeric",month:"short"}); };
@@ -25,7 +27,7 @@ const isPast = d => d&&d<todayStr();
 const isFuture = d => d&&d>todayStr();
 const quote = QUOTES[new Date().getDay()%QUOTES.length];
 
-const INIT = { tasks:[], projects:[], focus:{text:"",done:false}, meetings:[], notes:[], links:[], team:[], team:[] };
+const INIT = { tasks:[], projects:[], privateProjects:[], focus:{text:"",done:false}, meetings:[], notes:[], links:[], team:[] };
 const load = () => { try{ const s=localStorage.getItem("vikawh_v1"); return s?{...INIT,...JSON.parse(s)}:INIT; }catch{return INIT;} };
 const persist = s => { try{localStorage.setItem("vikawh_v1",JSON.stringify(s));}catch{} };
 
@@ -80,6 +82,9 @@ export default function App() {
   // Projects
   const addProj = () => { const p={id:gid(),name:"",color:PROJ_COLORS[st.projects.length%PROJ_COLORS.length]}; upd({...st,projects:[...st.projects,p]}); setSelProj(p.id); setView(VIEWS.PROJECTS); setEditingProj(p.id); setSidebarOpen(false); };
   const updProj = (id,fields) => upd({...st,projects:st.projects.map(p=>p.id===id?{...p,...fields}:p)});
+  const addPrivateProj = () => { const p={id:gid(),name:"",color:PROJ_COLORS[( st.privateProjects||[]).length%PROJ_COLORS.length]}; upd({...st,privateProjects:[...(st.privateProjects||[]),p]}); setSelProj(p.id); setView(VIEWS.PRIVATE_PROJECTS); setEditingProj(p.id); setSidebarOpen(false); };
+  const updPrivateProj = (id,fields) => upd({...st,privateProjects:(st.privateProjects||[]).map(p=>p.id===id?{...p,...fields}:p)});
+  const delPrivateProj = id => { upd({...st,privateProjects:(st.privateProjects||[]).filter(p=>p.id!==id),tasks:st.tasks.map(t=>t.privateProjectId===id?{...t,privateProjectId:null}:t)}); setConfirmDel(null); if(selProj===id){setSelProj(null);setView(VIEWS.PRIVATE);} showToast("Project deleted"); };
   const delProj = id => { upd({...st,projects:st.projects.filter(p=>p.id!==id),tasks:st.tasks.map(t=>t.projectId===id?{...t,projectId:null}:t)}); setConfirmDel(null); if(selProj===id){setSelProj(null);setView(VIEWS.PROJECTS);} showToast("Project deleted"); };
 
   // Notes
@@ -136,10 +141,10 @@ export default function App() {
   };
 
   const filterFn = tasks => filterPriority==="all"?tasks:tasks.filter(t=>t.priority===filterPriority);
-  const todayTasks = filterFn(st.tasks.filter(t=>!t.private&&(isToday(t.date)||(!t.done&&isPast(t.date)))));
-  const upcomingTasks = filterFn(st.tasks.filter(t=>!t.private&&isFuture(t.date)));
-  const inboxTasks = filterFn(st.tasks.filter(t=>!t.private&&!t.date&&!t.projectId));
-  const privateTasks = filterFn(st.tasks.filter(t=>t.private));
+  const todayTasks = sortByPriority(filterFn(st.tasks.filter(t=>!t.private&&(isToday(t.date)||(!t.done&&isPast(t.date))))));
+  const upcomingTasks = sortByPriority(filterFn(st.tasks.filter(t=>!t.private&&isFuture(t.date))));
+  const inboxTasks = sortByPriority(filterFn(st.tasks.filter(t=>!t.private&&!t.date&&!t.projectId)));
+  const privateTasks = sortByPriority(filterFn(st.tasks.filter(t=>t.private)));
   const total=st.tasks.filter(t=>!t.private).length;
   const doneCount=st.tasks.filter(t=>!t.private&&t.done).length;
   const overdue=st.tasks.filter(t=>!t.private&&!t.done&&isPast(t.date)).length;
@@ -173,7 +178,7 @@ export default function App() {
           }
           <div className="task-meta">
             {task.priority!==P.NONE&&<span className={`tag tag-${task.priority}`}>{P_LABEL[task.priority]}</span>}
-            {task.date&&<span className={`tag ${!task.done&&isPast(task.date)?"tag-overdue":"tag-date"}`}><i className="ti ti-calendar" style={{fontSize:10,marginRight:3}}/>{fmtDate(task.date)}</span>}
+            {task.date&&<span className={`tag ${!task.done&&isPast(task.date)?"tag-overdue":"tag-date"}`}><i className="ti ti-calendar" style={{fontSize:10,marginRight:3}}/>Due {fmtDate(task.date)}</span>}
             {task.repeat&&task.repeat!=="none"&&<span className="tag tag-repeat"><i className="ti ti-refresh" style={{fontSize:10,marginRight:3}}/>{REPEAT_OPT[task.repeat]}</span>}
             {proj&&<span className="tag tag-proj" style={{background:proj.color}}>{proj.name}</span>}
             {task.private&&<span className="tag tag-private"><i className="ti ti-lock" style={{fontSize:10,marginRight:3}}/>Private</span>}
@@ -207,7 +212,7 @@ export default function App() {
   const pageTitle = {
     [VIEWS.TODAY]:"Today",[VIEWS.UPCOMING]:"Upcoming",[VIEWS.INBOX]:"Inbox",
     [VIEWS.PRIVATE]:"Private",[VIEWS.CALENDAR]:"Calendar",[VIEWS.STATS]:"Progress",
-    [VIEWS.NOTES]:"Notes",[VIEWS.LINKS]:"Links",[VIEWS.MEETINGS]:"1:1 Meetings",
+    [VIEWS.NOTES]:"Notes",[VIEWS.LINKS]:"Links",[VIEWS.MEETINGS]:"1:1 Meetings",[VIEWS.PRIVATE_PROJECTS]:"Private Project",
   }[view] || (selProj?st.projects.find(p=>p.id===selProj)?.name||"Project":"Projects");
 
   return (
@@ -239,6 +244,16 @@ export default function App() {
           <button className={`nav-btn private-nav${view===VIEWS.PRIVATE&&!selProj?" active":""}`} onClick={()=>nav(VIEWS.PRIVATE)}>
             <i className="ti ti-lock"/><span className="nav-btn-label">Private</span>
             {privateTasks.filter(t=>!t.done).length>0&&<span className="nav-badge">{privateTasks.filter(t=>!t.done).length}</span>}
+          </button>
+          {(st.privateProjects||[]).map(p=>(
+            <button key={p.id} className={`proj-btn${selProj===p.id&&view===VIEWS.PRIVATE_PROJECTS?" active":""}`} onClick={()=>{setView(VIEWS.PRIVATE_PROJECTS);setSelProj(p.id);setSidebarOpen(false);}}>
+              <i className="ti ti-lock" style={{fontSize:11,color:"#FB923C",flexShrink:0}}/>
+              <span className="proj-label">{editingProj===p.id?<input autoFocus defaultValue={p.name} onBlur={e=>{updPrivateProj(p.id,{name:e.target.value||"Private project"});setEditingProj(null);}} onKeyDown={e=>{if(e.key==="Enter"||e.key==="Escape")e.target.blur();}} style={{background:"transparent",border:"none",outline:"none",fontSize:13,fontWeight:600,color:"var(--ink)",width:"100%",padding:0}} onClick={e=>e.stopPropagation()}/>:p.name||"Private project"}</span>
+              <span className="proj-count">{st.tasks.filter(t=>t.privateProjectId===p.id&&!t.done).length||""}</span>
+            </button>
+          ))}
+          <button className="nav-btn" onClick={addPrivateProj} style={{color:"rgba(255,255,255,0.35)",fontSize:12}}>
+            <i className="ti ti-plus" style={{fontSize:13}}/><span className="nav-btn-label">Add private project</span>
           </button>
 
           <div className="nav-sep"/>
@@ -299,6 +314,7 @@ export default function App() {
             }
             {view===VIEWS.TODAY&&<p className="page-sub">{new Date().toLocaleDateString("en-US",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</p>}
             {view===VIEWS.PRIVATE&&<p className="page-sub">Stored only on this device</p>}
+            {view===VIEWS.PRIVATE_PROJECTS&&<p className="page-sub">Private — only visible on this device</p>}
             {view===VIEWS.NOTES&&<p className="page-sub">Your personal notes</p>}
             {view===VIEWS.LINKS&&<p className="page-sub">Your saved links</p>}
             {view===VIEWS.MEETINGS&&<p className="page-sub">Your 1:1 meetings</p>}
@@ -378,6 +394,20 @@ export default function App() {
             <TaskListView tasks={privateTasks} renderTask={renderTask} renderAdd={()=>renderAdd({private:true})} emptyMsg="No private tasks yet"/>
           </>}
 
+          {view===VIEWS.PRIVATE_PROJECTS&&selProj&&(()=>{
+            const proj=(st.privateProjects||[]).find(p=>p.id===selProj);
+            if(!proj)return null;
+            const pt=sortByPriority(filterFn(st.tasks.filter(t=>t.privateProjectId===selProj)));
+            return<>
+              <div style={{display:"flex",gap:8,marginBottom:16}}>
+                <button onClick={()=>setEditingProj(selProj)} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 14px",border:"1.5px solid var(--teal-accent)",borderRadius:"var(--r)",background:"var(--teal-accent-bg)",color:"var(--teal-accent)",fontSize:13,fontWeight:700,cursor:"pointer"}}><i className="ti ti-pencil" style={{fontSize:14}}/> Rename</button>
+                <button onClick={()=>setConfirmDel({type:"private_project",id:selProj})} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 14px",border:"1.5px solid var(--red)",borderRadius:"var(--r)",background:"var(--red-bg)",color:"var(--red)",fontSize:13,fontWeight:700,cursor:"pointer"}}><i className="ti ti-trash" style={{fontSize:14}}/> Delete</button>
+              </div>
+              {editingProj===selProj&&<div style={{display:"flex",gap:8,marginBottom:16}}><input autoFocus defaultValue={proj.name} placeholder="Project name..." style={{fontSize:15,fontWeight:700,padding:"8px 12px",border:"2px solid var(--teal-accent)",borderRadius:"var(--r)",outline:"none",color:"var(--ink)",background:"var(--surface)",flex:1}} onBlur={e=>{updPrivateProj(selProj,{name:e.target.value||"Private project"});setEditingProj(null);}} onKeyDown={e=>{if(e.key==="Enter")e.target.blur();}}/><button className="btn-secondary" onClick={()=>setEditingProj(null)}>Save</button></div>}
+              <div style={{display:"flex",gap:8,marginBottom:18,flexWrap:"wrap"}}>{PROJ_COLORS.map(c=><button key={c} onClick={()=>updPrivateProj(selProj,{color:c})} style={{width:22,height:22,borderRadius:"50%",background:c,border:proj.color===c?"3px solid var(--ink)":"none",padding:0,cursor:"pointer"}}/>)}</div>
+              <TaskListView tasks={pt} renderTask={renderTask} renderAdd={()=>renderAdd({private:true,privateProjectId:selProj})} emptyMsg="No tasks yet — add the first one"/>
+            </>;
+          })()}
           {view===VIEWS.NOTES&&<NotesView notes={st.notes||[]} onAdd={addNote} onUpdate={updNote} onDelete={delNote}/>}
           {view===VIEWS.LINKS&&<LinksView links={st.links||[]} onAdd={addLink} onUpdate={updLink} onDelete={delLink}/>}
           {view===VIEWS.MEETINGS&&<MeetingsView meetings={st.meetings||[]} onAdd={addMeeting} onUpdate={updMeeting} onDelete={delMeeting}/>}
@@ -452,7 +482,7 @@ export default function App() {
       {confirmDel&&<div className="modal-bg" onClick={()=>setConfirmDel(null)}>
         <div className="modal" onClick={e=>e.stopPropagation()}>
           <div className="modal-title">Delete?</div>
-          <div className="modal-sub">{confirmDel.type==="project"?"Project deleted. Tasks move to Inbox.":"This will be permanently deleted."}</div>
+          <div className="modal-sub">{confirmDel.type==="project"?"Project deleted. Tasks move to Inbox.":confirmDel.type==="private_project"?"Private project deleted. Tasks will be removed from it.":"This will be permanently deleted."}</div>
           <div className="modal-actions">
             <button className="btn-secondary" onClick={()=>setConfirmDel(null)}>Cancel</button>
             <button className="btn-danger" onClick={()=>confirmDel.type==="project"?delProj(confirmDel.id):delTask(confirmDel.id)}>Delete</button>
