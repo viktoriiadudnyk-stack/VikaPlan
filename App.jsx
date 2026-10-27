@@ -178,7 +178,7 @@ export default function App() {
           }
           <div className="task-meta">
             {task.priority!==P.NONE&&<span className={`tag tag-${task.priority}`}>{P_LABEL[task.priority]}</span>}
-            {task.date&&<span className={`tag ${!task.done&&isPast(task.date)?"tag-overdue":"tag-date"}`}><i className="ti ti-calendar" style={{fontSize:10,marginRight:3}}/>Due {fmtDate(task.date)}</span>}
+            {task.date&&<span className={`tag ${!task.done&&isPast(task.date)?"tag-overdue":"tag-date"}`}><i className="ti ti-calendar" style={{fontSize:10,marginRight:3}}/>Due: {fmtDate(task.date)}</span>}
             {task.repeat&&task.repeat!=="none"&&<span className="tag tag-repeat"><i className="ti ti-refresh" style={{fontSize:10,marginRight:3}}/>{REPEAT_OPT[task.repeat]}</span>}
             {proj&&<span className="tag tag-proj" style={{background:proj.color}}>{proj.name}</span>}
             {task.private&&<span className="tag tag-private"><i className="ti ti-lock" style={{fontSize:10,marginRight:3}}/>Private</span>}
@@ -380,7 +380,7 @@ export default function App() {
               )}
             </div>
             <FilterBar/>
-            <TaskListView tasks={todayTasks} renderTask={renderTask} renderAdd={()=>renderAdd({date:todayStr()})} emptyMsg="All done for today 🎉"/>
+            <TaskListView tasks={todayTasks} renderTask={renderTask} renderAdd={()=>renderAdd({})} emptyMsg="All done for today 🎉"/>
           </>}
 
           {view===VIEWS.UPCOMING&&<><FilterBar/><UpcomingView tasks={upcomingTasks} renderTask={renderTask} renderAdd={()=>renderAdd({})}/></>}
