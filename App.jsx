@@ -487,7 +487,7 @@ export default function App() {
           <div className="modal-sub">{confirmDel.type==="project"?"Project deleted. Tasks move to Inbox.":confirmDel.type==="private_project"?"Private project deleted. Tasks will be removed from it.":"This will be permanently deleted."}</div>
           <div className="modal-actions">
             <button className="btn-secondary" onClick={()=>setConfirmDel(null)}>Cancel</button>
-            <button className="btn-danger" onClick={()=>confirmDel.type==="project"?delProj(confirmDel.id):delTask(confirmDel.id)}>Delete</button>
+            <button className="btn-danger" onClick={()=>confirmDel.type==="project"?delProj(confirmDel.id):confirmDel.type==="private_project"?delPrivateProj(confirmDel.id):delTask(confirmDel.id)}>Delete</button>
           </div>
         </div>
       </div>}
